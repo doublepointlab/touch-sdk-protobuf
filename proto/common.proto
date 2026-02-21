@@ -22,22 +22,10 @@ message Quat {
 
 enum GestureType {
     NONE = 0;
-
     PINCH_TAP = 1;
     CLENCH = 2;
     SURFACE_TAP = 3;
     PINCH_HOLD = 4;
-
-    DPAD_LEFT = 5;
-    DPAD_RIGHT = 6;
-    DPAD_UP = 7;
-    DPAD_DOWN = 8;
-
-    RING_TAP = 9;
-    RING_HOLD = 10;
-
-    SIDE_TAP = 10;
-    SIDE_TAP_HOLD = 11;
 }
 
 message Model {

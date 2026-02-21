@@ -119,6 +119,21 @@ message ProbabilityEntry {
     float probability = 2;
 }
 
+message WowmouseInfo {
+    float sensitivity = 1;
+    float smoothing = 2;
+
+    enum ActiveState {
+        NONE = 0;
+        INACTIVE = 1;
+        ACTIVE = 2;
+    }
+
+    ActiveState cursorActive = 3;
+    bool leftHanded = 4;
+    bool crownLeft = 5;
+}
+
 // Message type sent by the server (peripheral device) to the client (application)
 // over the "output" GATT characteristic. Used for both notifications and read responses.
 message Update {
@@ -164,5 +179,7 @@ message Update {
 
     // Barometric pressure in hPa. 0.0 (= default float value) if not available.
     float pressure = 16;
+
+    WowmouseInfo mouseInfo = 17;
 
 }
