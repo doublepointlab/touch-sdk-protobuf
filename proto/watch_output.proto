@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+option csharp_namespace = "Psix.Proto";
+
+import "common.proto";
+
+// Information about the peripheral device and its gesture detection capabilities.
+message Info {
+
+    // Which hand the device is worn on?
+    enum Hand {
+        NONE = 0;
+        RIGHT = 1;
+        LEFT = 2;
+    }
+    Hand hand = 1;
+
+    // ID and version of the application running on the peripheral.
+    string appId = 2;
+    string appVersion = 3;
+
+    // Available and active gesture detection models.
+    repeated Model availableModels = 4;
+    Model activeModel = 5;
+    string modelInfo = 6; // Information about the active model
+
+    string manufacturer = 7; // Device manufacturer
+    string deviceName = 8; // Name of the peripheral device
+
+    int32 batteryPercentage = 9; // Battery level in percent, 0-100
+
+    bool hapticsAvailable = 10; // Whether the peripheral supports haptic feedback
+
+    Vec2 touchScreenResolution = 11; // Whether the peripheral has a touch screen
+}
+
+// Sensor frame, containing data from the IMU and magnetometer
+// at a specific point in time.
+message SensorFrame {
+    Vec3 gyro = 1; // Angular velocity in rad/s
+    Vec3 acc = 2;  // Acceleration in m/s^2
+    Vec3 grav = 3; // Gravity in m/s^2
+    Quat quat = 4; // Orientation quaternion
+    Vec3 mag = 6;  // Magnetic field in uT
+    Vec3 magCal = 7;  // Magnetic field calibration value in uT
+
+    int32 deltaTime = 5; // Milliseconds since the last sensor frame
+}
+
+
+// Gesture event, containing information about a detected gesture.
+message Gesture {
+
+    GestureType type = 1;
+
+    // The time at which the gesture was detected,
+    // in milliseconds since the last Update message.
+    int32 deltaTime = 2;
+}
+
+
+// Touch screen event.
+message TouchEvent {
+
+    // What type of touch event was detected?
+    enum TouchEventType {
+        NONE = 0;
+        BEGIN = 1;
+        END = 2;
+        MOVE = 3;
+        CANCEL = 4;
+    }
+    TouchEventType eventType = 1;
+
+
+    // Which pointer ID caused this event?
+    int32 actionIndex = 2;
+
+    // List of pointer IDs that are currently active.
+    repeated int32 pointerIds = 3;
+
+    // List of touch screen coordinates (in pixels) for each active pointer.
+    repeated Vec2 coords = 4;
+
+    // Time at which the touch event was detected,
+    // in milliseconds since the last Update message.
+    int32 deltaTime = 5;
+
+}
+
+
+// Rotary input event.
+message RotaryEvent {
+
+    // Positive for clockwise, negative for counter-clockwise. 0 is reserved for None.
+    int32 step = 1;
+
+    // Time at which the rotary event was detected,
+    // in milliseconds since the last Update message.
+    int32 deltaTime = 2;
+}
+
+// Button input event.
+message ButtonEvent {
+    // Must be non-negative for valid button. -1 is reserved for None.
+    int32 id = 1;
+
+    // Time at which the button event was detected,
+    // in milliseconds since the last Update message.
+    int32 deltaTime = 2;
+}
+
+// Output of the gesture detection model.
+message ProbabilityEntry {
+    // Which gesture does this probability correspond to?
+    GestureType label = 1;
+
+    // Probability of the gesture being detected, between 0 and 1.
+    float probability = 2;
+}
+
+// Message type sent by the server (peripheral device) to the client (application)
+// over the "output" GATT characteristic. Used for both notifications and read responses.
+message Update {
+
+    // One or more sensor frames. Read response should contain exactly one sensor frame,
+    // corresponding to the most recent available sensor data. Notifications should contain
+    // at least one sensor frame; handling of multiple frames is client-specific.
+    repeated SensorFrame sensorFrames = 1;
+
+    // Zero or more gesture events that have been detected since the last notification update.
+    // Read response should contain no gestures.
+    repeated Gesture gestures = 2;
+
+    // Zero or more touch events that have been detected since the last notification update.
+    repeated TouchEvent touchEvents = 3;
+    repeated ButtonEvent buttonEvents = 4;
+    repeated RotaryEvent rotaryEvents = 5;
+
+    // Zero or more signals, with which the server notifies the client of a specific event.
+    enum Signal {
+        NONE = 0;
+        DISCONNECT = 1; // Client should disconnect from this server as soon as possible.
+        CONNECT_APPROVED = 2; // Not used.
+        DESCRIPTION_UPDATE = 3; // Not used.
+    }
+    repeated Signal signals = 6;
+
+    // Milliseconds since the last update. 0 (= default int value) if not available.
+    int32 deltaTime = 7;
+
+    // Unix time in milliseconds, measured by server when update is built.
+    // 0 (= default int value) if not available.
+    int64 unixTime = 8;
+
+    // Always present in a read response. Only present in a notification
+    // if the information has changed.
+    Info info = 9;
+
+    // Gesture probabilities. Only present in a notification update.
+    repeated ProbabilityEntry probabilities = 10;
+
+    // Less frequently occurring fields
+
+    // Barometric pressure in hPa. 0.0 (= default float value) if not available.
+    float pressure = 16;
+
+}

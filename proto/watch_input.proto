@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option csharp_namespace = "Psix.Proto";
+
+import "common.proto";
+
+
+// Haptic event to be triggered on the peripheral device.
+message HapticEvent {
+
+    // Type of the haptic event.
+    enum HapticType {
+        CANCEL = 0; // Cancel any ongoing haptic feedback.
+        ONESHOT = 1; // Trigger a one-shot haptic feedback.
+    }
+    HapticType type = 1;
+
+    // Intensity of effect, between 0 and 1.
+    float intensity = 2;
+    // Duration of effect in milliseconds. Peripheral may impose a maximum duration.
+    int32 length = 3;
+}
+
+
+// Information about the client application.
+message ClientInfo {
+    // User-readable name of the application.
+    string appName = 1;
+
+    // User-readable name of the device running the application.
+    string deviceName = 2;
+
+    string title = 3; // Not used.
+
+    // Operating system of the device running the application.
+    string os = 4;
+}
+
+// Message type sent by the client (application) to the server (peripheral device)
+// over the "input" GATT characteristic by a GATT write operation.
+message InputUpdate {
+
+    // Application wants to trigger haptic feedback on the peripheral device.
+    HapticEvent hapticEvent = 1;
+
+    // Information about the client application.
+    ClientInfo clientInfo = 2;
+
+    // Application requests a gesture detection model to be activated on the peripheral device.
+    Model modelRequest = 3;
+}
